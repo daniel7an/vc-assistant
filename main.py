@@ -113,7 +113,8 @@ def get_data():
 
 app.run(app.run(
     host="0.0.0.0",
-    port=5000
+    port=5000,
+    debug=True
 ))
 
 cur.close()
