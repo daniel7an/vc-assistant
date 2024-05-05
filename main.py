@@ -95,14 +95,19 @@ def get_data():
             except (json.decoder.JSONDecodeError, KeyError, TypeError) as e:
                 # These errors may occur because the OpenAI API model sometimes fails to generate proper JSON format text.
                 # We provide more attempts to fix these mistakes.
+                print(e)
+            
                 a += 1
                 if a >= 5:
                     return jsonify({"response":False, "message": 'Error: Unable to generate JSON representation. Please try again.'})
             except openai.BadRequestError as e:
+                print(e)
+
                 # These error occurs due to limitations in the OpenAI language model's capabilities.
                 return jsonify({"response":False, "message": 'Error: Website content is too complex to process'})
             except Exception as e:
                 # For any other errors we also give some more chances to our LLM. 
+                print(e)
                 a += 1
                 if a>=3:
                     return jsonify({"response":False, "message": str(e)})
@@ -112,7 +117,7 @@ def get_data():
         return jsonify({"response":False, "message": 'Website url is incorrect.'})
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 cur.close()
 conn.close()
