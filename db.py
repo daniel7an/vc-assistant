@@ -1,13 +1,25 @@
 import psycopg2
 from pgvector.psycopg2 import register_vector
 
+# def connect_to_database():
+#     # Connect to the PostgreSQL database
+#     conn = psycopg2.connect(
+#         dbname="vc-data",
+#         user="postgres",
+#         password="Magavuz77*",
+#         host="localhost",
+#         port="5432"
+#     )
+
+    # return conn
+
 def connect_to_database():
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
-        dbname="vc-data",
-        user="postgres",
-        password="Magavuz77*",
-        host="localhost",
+        dbname="vcdata",
+        user="vcdata_user",
+        password="04mIVJWnpVCaYx3EziK0toZvq8sW5FZc",
+        host="dpg-corloui0si5c739ihihg-a.oregon-postgres.render.com",
         port="5432"
     )
 
