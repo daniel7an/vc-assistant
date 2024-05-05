@@ -16,12 +16,14 @@ CORS(app)
 
 # Connect to the PostgreSQL database
 conn = connect_to_database()
+print('Database connection established')
 
 # Create a cursor object to execute SQL queries
 cur = conn.cursor()
 
 # Create the tables in the database
 create_tables(conn, cur)
+print('Tables created successfully')
 conn.commit()
 
 openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -55,7 +57,7 @@ def get_data():
                 
                 completion = client.completions.create(model='gpt-3.5-turbo-instruct', prompt=f'Use scraped website data below to generate json file with the VC information (4 attributes): name, contacts (it is important to fill email, phone number, address), industries (list: represents industries where company invests), investment_rounds (list). Text: {scraped_data}', max_tokens=400)
                 output = json.loads(completion.choices[0].text)
-                
+                print('Check1')
                 # Insert data into the main venture_capital table
                 insert_vc = '''
                 INSERT INTO venture_capital (website, name, contacts, industries, investment_rounds)
@@ -64,6 +66,7 @@ def get_data():
                 '''
                 cur.execute(insert_vc, (user_input.strip(), output['name'], json.dumps(output["contacts"]), json.dumps(output['industries']), json.dumps(output['investment_rounds'])))
                 conn.commit()
+                print('Check2')
                 
                 # Embed industries and investment_rounds, for similarity search
                 industry_vector = embed_data(json.dumps(output['industries']))
@@ -74,6 +77,7 @@ def get_data():
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (website) DO NOTHING;
                 '''
+                print('Check3')
                 cur.execute(insert_vector, (user_input.strip(), output['name'], industry_vector, investment_rounds_vector))
                 conn.commit()
 
@@ -83,6 +87,7 @@ def get_data():
 
                 cosine = [cos[2] for cos in cos_similarity[1:]]
                 euclidean = [neighbor[2] for neighbor in neighbors[1:]]
+                print('Check4')
 
                 # Return answer to user
                 return jsonify({"response":True, "message": json.dumps(output) + f"\n SIMILAR VCs ----->  Nearest Neighbors: {euclidean}, Cosine Similarity: {cosine}"})
