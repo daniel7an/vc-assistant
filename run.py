@@ -1,0 +1,2 @@
+import main
+app = main()

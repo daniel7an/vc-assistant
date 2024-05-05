@@ -111,11 +111,14 @@ def get_data():
         # provided from the user was incorrect.
         return jsonify({"response":False, "message": 'Website url is incorrect.'})
 
-app.run(app.run(
-    host="0.0.0.0",
-    port=5000,
-    debug=True
-))
+
+if __name__ == '__main__':
+    app.run(app.run(
+        host="0.0.0.0",
+        port=5000,
+        debug=True
+    ))
+
 
 cur.close()
 conn.close()
