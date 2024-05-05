@@ -5,6 +5,7 @@ import json
 from flask import Flask
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS
+import os
 
 # importing custom methods
 from db import connect_to_database, create_tables
@@ -23,8 +24,10 @@ cur = conn.cursor()
 create_tables(conn, cur)
 conn.commit()
 
+openai_api_key = os.environ.get('OPENAI_API_KEY')
+
 # Creating OpenAI client
-client = OpenAI(api_key='sk-proj-zDBgl9CQp3TjfbHog5X9T3BlbkFJq4kgqhu2wFeTm3ufuly5')
+client = OpenAI(api_key=openai_api_key)
 
 # API for scraping websites
 jina_api = 'https://r.jina.ai/'

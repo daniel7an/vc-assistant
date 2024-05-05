@@ -1,5 +1,6 @@
 import psycopg2
 from pgvector.psycopg2 import register_vector
+import os
 
 # def connect_to_database():
 #     # Connect to the PostgreSQL database
@@ -13,15 +14,11 @@ from pgvector.psycopg2 import register_vector
 
     # return conn
 
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
 def connect_to_database():
     # Connect to the PostgreSQL database
-    conn = psycopg2.connect(
-        dbname="vcdata",
-        user="vcdata_user",
-        password="04mIVJWnpVCaYx3EziK0toZvq8sW5FZc",
-        host="dpg-corloui0si5c739ihihg-a.oregon-postgres.render.com",
-        port="5432"
-    )
+    conn = psycopg2.connect(DATABASE_URL)
 
     return conn
 
