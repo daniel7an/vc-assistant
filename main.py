@@ -61,6 +61,7 @@ def get_data():
             try:
                 # Connect to the PostgreSQL database
                 conn = connect_to_database()
+                cur = conn.cursor()
                 
                 completion = client.completions.create(model='gpt-3.5-turbo-instruct', prompt=f'Use scraped website data below to generate json file with the VC information (4 attributes): name, contacts (it is important to fill email, phone number, address), industries (list: represents industries where company invests), investment_rounds (list). Text: {scraped_data}', max_tokens=400)
                 output = json.loads(completion.choices[0].text)
