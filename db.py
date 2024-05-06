@@ -40,8 +40,9 @@ def add_initial_data(conn, cur):
             for row in reader:
                 website = row[1]
                 name = row[2]
-                industries = np.array(row[3].split(',')).tolist()
-                investment_rounds = np.array(row[4].split(',')).tolist()
+                
+                industries = np.array(row[3].replace('[', '').replace(']', '').split(',')).astype(float).tolist()
+                investment_rounds = np.array(row[4].replace('[', '').replace(']', '').split(',')).astype(float).tolist()
 
                 insert_query = '''
                 INSERT INTO embeddings (website, name, industries, investment_rounds)
