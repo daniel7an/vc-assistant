@@ -2,7 +2,6 @@ import psycopg2
 from pgvector.psycopg2 import register_vector
 import os
 import csv
-import json
 import numpy as np
 
 DATABASE_URL = os.environ.get('DATABASE_URL')

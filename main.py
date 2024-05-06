@@ -9,7 +9,7 @@ import os
 
 # importing custom methods
 from db import connect_to_database, create_tables, add_initial_data
-from similarity_search import embed_data, nearest_neighbours, cosine_similarity
+from similarity import embed_data, nearest_neighbours, cosine_similarity
 
 app = Flask(__name__)
 CORS(app)
@@ -25,10 +25,13 @@ cur = conn.cursor()
 create_tables(conn, cur)
 print('Tables created successfully')
 
+# Adding initial 10 VCs data embeddings to database for implementing similarity search
 add_initial_data(conn, cur)
 print('Initial data adedded successfully')
 
 conn.commit()
+cur.close()
+conn.close()
 
 openai_api_key = os.environ.get('OPENAI_API_KEY')
 
@@ -118,15 +121,20 @@ def get_data():
                     return jsonify({"response":False, "message": 'Error: Unable to generate JSON representation. Please try again.'})
             except openai.BadRequestError as e:
                 print(e)
-                # These error occurs due to limitations in the OpenAI language model's capabilities.
+                # These error occurs due to limitations in the GPT-3.5 model's capabilities.
                 return jsonify({"response":False, "message": 'Error: Website content is too complex to process'})
             except Exception as e:
-                # For any other errors we also give some more chances to our LLM. 
+                # For any other errors, we assume that they are in most cases related with the response LLM gives to us
+                # and we give more chances to it to genrate correct output.
                 print(e)
                 print(a)
                 a += 1
                 if a>=5:
                     return jsonify({"response":False, "message": str(e)})
+            finally:
+                cur.close()
+                conn.close()
+
     else:
         # In this case if Jina API fails to scrape the website, most likely the url
         # provided from the user was incorrect.
@@ -134,6 +142,5 @@ def get_data():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
-    # cur.close()
-    # conn.close()
+
 
