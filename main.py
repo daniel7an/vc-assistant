@@ -8,7 +8,7 @@ from flask_cors import CORS
 import os
 
 # importing custom methods
-from db import connect_to_database, create_tables
+from db import connect_to_database, create_tables, add_initial_data
 from similarity_search import embed_data, nearest_neighbours, cosine_similarity
 
 app = Flask(__name__)
@@ -24,6 +24,10 @@ cur = conn.cursor()
 # Create the tables in the database
 create_tables(conn, cur)
 print('Tables created successfully')
+
+add_initial_data(conn, cur)
+print('Initial data adedded successfully')
+
 conn.commit()
 
 openai_api_key = os.environ.get('OPENAI_API_KEY')
@@ -121,7 +125,7 @@ def get_data():
                 print(e)
                 print(a)
                 a += 1
-                if a>=3:
+                if a>=5:
                     return jsonify({"response":False, "message": str(e)})
     else:
         # In this case if Jina API fails to scrape the website, most likely the url
