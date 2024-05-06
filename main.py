@@ -46,7 +46,13 @@ def index():
 
 @app.route('/data', methods=['POST'])
 def get_data():
-    data = request.get_json()
+    # For very big websites, our scraper may just can be unavle to scrape.
+    try:
+        data = request.get_json()
+    except:
+        return jsonify({"response":False, "message": 'Unable to scrape the website. Maybe it is very complex'})
+    
+    # Getting scraped data
     user_input = data.get('data')
     jina_response = requests.get(jina_api + user_input)
 
@@ -120,8 +126,9 @@ def get_data():
                 if a >= 5:
                     return jsonify({"response":False, "message": 'Error: Unable to generate proper JSON representation. Please provide website link again :)'})
             except openai.BadRequestError as e:
-                print(e)
                 # These error occurs due to limitations in the GPT-3.5 model's capabilities.
+                # Most likely scraped data from the website has a big size.
+                print(e)
                 return jsonify({"response":False, "message": 'Error: Website content is too complex to process'})
             except Exception as e:
                 # For any other errors, we assume that they are in most cases related with the response LLM gives to us
