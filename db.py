@@ -37,10 +37,11 @@ def create_tables(conn, cur):
 def add_initial_data(conn, cur):
     with open('initial_data/embeddings.csv', 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
+            next(reader)
             for row in reader:
                 website = row[1]
                 name = row[2]
-                
+
                 industries = np.array(row[3].replace('[', '').replace(']', '').split(',')).astype(float).tolist()
                 investment_rounds = np.array(row[4].replace('[', '').replace(']', '').split(',')).astype(float).tolist()
 
