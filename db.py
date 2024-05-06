@@ -3,6 +3,7 @@ from pgvector.psycopg2 import register_vector
 import os
 import csv
 import json
+import numpy as np
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
@@ -34,43 +35,21 @@ def create_tables(conn, cur):
                 ''')
     
 def add_initial_data(conn, cur):
-    with open('initial_data/venture_capital.csv', 'r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                    website = row[1]
-                    name = row[2]
-                    contacts = json.dumps(row[3])
-                    industries = json.dumps(row[4])
-                    investment_rounds = json.dumps(row[5])
-
-                    insert_vc = '''
-                    INSERT INTO venture_capital (website, name, contacts, industries, investment_rounds)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (website) DO UPDATE 
-                    SET name = EXCLUDED.name, 
-                        contacts = EXCLUDED.contacts, 
-                        industries = EXCLUDED.industries, 
-                        investment_rounds = EXCLUDED.investment_rounds;
-                    '''
-                    cur.execute(insert_vc, (website, name, contacts, industries, investment_rounds))
-                    conn.commit()
-
     with open('initial_data/embeddings.csv', 'r', encoding='utf-8') as file:
             reader = csv.reader(file)
             for row in reader:
-                    website = row[1]
-                    website = row[1]
-                    name = row[2]
-                    industries = row[3]
-                    investment_rounds = row[4]
+                website = row[1]
+                name = row[2]
+                industries = np.array(row[3].split(',')).tolist()
+                investment_rounds = np.array(row[4].split(',')).tolist()
 
-                    insert_query = '''
-                    INSERT INTO embeddings (website, name, industries, investment_rounds)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (website) DO UPDATE 
-                    SET name = EXCLUDED.name, 
-                        industries = EXCLUDED.industries, 
-                        investment_rounds = EXCLUDED.investment_rounds;
-                    '''
-                    cur.execute(insert_query, (website, name, industries, investment_rounds))
-                    conn.commit()
+                insert_query = '''
+                INSERT INTO embeddings (website, name, industries, investment_rounds)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (website) DO UPDATE 
+                SET name = EXCLUDED.name, 
+                    industries = EXCLUDED.industries, 
+                    investment_rounds = EXCLUDED.investment_rounds;
+                '''
+                cur.execute(insert_query, (website, name, industries, investment_rounds))
+                conn.commit()

@@ -1,22 +1,18 @@
 import csv
+import numpy as np
 
-with open('initial_data/venture_capital.csv', 'r', encoding='utf-8') as file:
+with open('initial_data/embeddings.csv', 'r', encoding='utf-8') as file:
         reader = csv.reader(file)
+        next(reader)
         for row in reader:
-                website = row[1]
-                name = row[2]
-                contacts = json.dumps(row[3])
-                industries = json.dumps(row[4])
-                investment_rounds = json.dumps(row[5])
+            industries = np.array(row[3].split(',')).tolist()
+            investment_rounds = np.array(row[4].split(',')).tolist()
+            break
+            # website = row[1]
+            # website = row[1]
+            # name = row[2]
+            # industries = row[3]
+            # investment_rounds = row[4]
 
-                insert_vc = '''
-                INSERT INTO venture_capital (website, name, contacts, industries, investment_rounds)
-                VALUES (%s, %s, %s, %s, %s)
-                ON CONFLICT (website) DO UPDATE 
-                SET name = EXCLUDED.name, 
-                    contacts = EXCLUDED.contacts, 
-                    industries = EXCLUDED.industries, 
-                    investment_rounds = EXCLUDED.investment_rounds;
-                '''
-                cur.execute(insert_vc, (website, name, contacts, industries, investment_rounds))
-                conn.commit()
+            # print(np.array(industries)[1])
+            # break
