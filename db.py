@@ -33,6 +33,7 @@ def create_tables(conn, cur):
                 );
                 ''')
     
+# Function for adding data about VCs, to calculate similarity with them in the beginning
 def add_initial_data(conn, cur):
     with open('initial_data/embeddings.csv', 'r', encoding='utf-8') as file:
             reader = csv.reader(file)

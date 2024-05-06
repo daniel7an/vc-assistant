@@ -11,28 +11,27 @@ import os
 from db import connect_to_database, create_tables, add_initial_data
 from similarity import embed_data, nearest_neighbours, cosine_similarity
 
+# Creating Flask app instance
 app = Flask(__name__)
 CORS(app)
 
 # Connect to the PostgreSQL database
 conn = connect_to_database()
-print('Database connection established')
-
 # Create a cursor object to execute SQL queries
 cur = conn.cursor()
 
 # Create the tables in the database
 create_tables(conn, cur)
-print('Tables created successfully')
 
 # Adding initial 10 VCs data embeddings to database for implementing similarity search
 add_initial_data(conn, cur)
-print('Initial data adedded successfully')
 
+# in the end, we need to commit changes and close connections to databse
 conn.commit()
 cur.close()
 conn.close()
 
+# Getting OPENAI API KEY
 openai_api_key = os.environ.get('OPENAI_API_KEY')
 
 # Creating OpenAI client
@@ -55,24 +54,26 @@ def get_data():
     if jina_response.status_code == 200:
         scraped_data = jina_response.text
 
-        a = 0 # variable, for additional output generation, in case of errors.
+        a = 0 # variable, for additional output generation, in case of errors in GPT output.
 
         while True:
             try:
                 # Connect to the PostgreSQL database
                 conn = connect_to_database()
                 cur = conn.cursor()
-                
+
+                # Getting relevant information with LLM
                 completion = client.completions.create(model='gpt-3.5-turbo-instruct', prompt=f'Use scraped website data below to generate json file with the VC information (4 attributes): name, contacts (it is important to fill email, phone number, address), industries (list: represents industries where company invests), investment_rounds (list). Text: {scraped_data}', max_tokens=400)
                 output = json.loads(completion.choices[0].text)
                 keys = list(output.keys())
                 
+                # extracting our attributes
                 name = output[keys[0]]
                 contacts = json.dumps(output[keys[1]])
                 industries = json.dumps(output[keys[2]])
                 investment_rounds = json.dumps(output[keys[3]])
 
-                print('Check1')
+                # Adding data into our main table
                 insert_vc = '''
                 INSERT INTO venture_capital (website, name, contacts, industries, investment_rounds)
                 VALUES (%s, %s, %s, %s, %s)
@@ -84,11 +85,11 @@ def get_data():
                 '''
                 cur.execute(insert_vc, (user_input.strip(), name, contacts, industries, investment_rounds))
                 conn.commit()
-                print('Check2')
                 
                 # Embed industries and investment_rounds, for similarity search
                 industry_vector = embed_data(json.dumps(industries))
                 investment_rounds_vector = embed_data(json.dumps(investment_rounds))
+
                 # Adding embedded vectors to our VectorDB table
                 insert_vector = '''
                 INSERT INTO embeddings (website, name, industries, investment_rounds)
@@ -107,7 +108,6 @@ def get_data():
 
                 cosine = [cos[2] for cos in cos_similarity[1:]]
                 euclidean = [neighbor[2] for neighbor in neighbors[1:]]
-                print('Check4')
 
                 # Return answer to user
                 return jsonify({"response":True, "message": json.dumps(output) + f"\n SIMILAR VCs ----->  Nearest Neighbors: {euclidean}, Cosine Similarity: {cosine}"})
@@ -116,19 +116,17 @@ def get_data():
                 # These errors may occur because the OpenAI API model sometimes fails to generate proper JSON format text.
                 # We provide more attempts to fix these mistakes.
                 print(e)
-                print(a)
                 a += 1
                 if a >= 5:
-                    return jsonify({"response":False, "message": 'Error: Unable to generate JSON representation. Please try again.'})
+                    return jsonify({"response":False, "message": 'Error: Unable to generate proper JSON representation. Please provide website link again :)'})
             except openai.BadRequestError as e:
                 print(e)
                 # These error occurs due to limitations in the GPT-3.5 model's capabilities.
                 return jsonify({"response":False, "message": 'Error: Website content is too complex to process'})
             except Exception as e:
                 # For any other errors, we assume that they are in most cases related with the response LLM gives to us
-                # and we give more chances to it to genrate correct output.
+                # and we give more chances to it to generate correct output.
                 print(e)
-                print(a)
                 a += 1
                 if a>=5:
                     return jsonify({"response":False, "message": str(e)})
@@ -143,5 +141,3 @@ def get_data():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-
