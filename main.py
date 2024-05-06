@@ -46,16 +46,15 @@ def index():
 
 @app.route('/data', methods=['POST'])
 def get_data():
-    # For very big websites, our scraper may just can be unavle to scrape.
     try:
         data = request.get_json()
+        user_input = data.get('data')
+        # For very big websites, our scraper can be unable to scrape, just and shut down. 
+        # We handle it with exception.
+        jina_response = requests.get(jina_api + user_input)
     except:
         return jsonify({"response":False, "message": 'Unable to scrape the website. Maybe it is very complex'})
     
-    # Getting scraped data
-    user_input = data.get('data')
-    jina_response = requests.get(jina_api + user_input)
-
     # Check if the request from scraper was successful (status code 200)
     if jina_response.status_code == 200:
         scraped_data = jina_response.text
